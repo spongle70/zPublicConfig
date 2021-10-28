@@ -19,7 +19,7 @@ git add README.md
 
 git commit -m "first commit"
 
-git remote add origin http://PRIVATEIP/git/${USER1}/${REPO}.git
+git remote add origin http://${PRIVATEIP}/git/${USER1}/${REPO}.git
 
 git remote set-url origin ssh://git@${PRIVATEIP}:3022/${USER1}/${REPO}.git
 
