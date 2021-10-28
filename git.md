@@ -19,4 +19,8 @@ GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_example"
 
 git config core.sshCommand "ssh -i ~/.mykeys/gitkey -F /dev/null"
 
+-------
 
+  git config --global user.email "cccccc"
+
+  git config --global user.name "cccccc"
