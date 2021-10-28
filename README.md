@@ -23,7 +23,7 @@ git remote add origin http://PRIVATEIP/git/${USER1}/${REPO}.git
 
 git remote set-url origin ssh://git@${PRIVATEIP}:3022/${USER1}/${REPO}.git
 
-git remote set-url --add add git@github.com:${USER2}/${REPO}.git
+git remote set-url --add origin git@github.com:${USER2}/${REPO}.git
 
 git branch -M main
 
