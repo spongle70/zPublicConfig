@@ -13,7 +13,7 @@ git config http.sslVerify false
 
 -----------
 
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_example"
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_example" git clone xxxxxx
 
 ----------------
 
