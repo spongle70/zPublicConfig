@@ -1,0 +1,332 @@
+#!/bin/sh
+#
+# Common environment variables
+#
+set_constants () {
+  MYNAME=`uname -n`
+  DATENOW=`date '+%Y%m%d-%H%M%S'`
+
+  BASE=
+  ZCBIN=${BASE}/zTools/zConfig/bin
+  ZCDOT=${BASE}/zTools/zConfig/dotfiles
+  ZCETC=${BASE}/zTools/zConfig/etc
+  ZCGNOME=${BASE}/zTools/zConfig/gnome
+  ZCKICK=${BASE}/zTools/zConfig/kick
+  ZCSYN=${BASE}/zTools/zConfig/syn
+  ZCAPPDIR=${BASE}/zTools/zGold/Apps/LinuxApps
+  ZPCETC=${BASE}/zTools/zPrivateConfig/etc
+
+  ZDOCKER=${BASE}/zTools/zDocker
+
+  APPDIR=${BASE}/zTools/zGold/Apps/LinuxApps
+  THIS_SCRIPT=`basename $0`
+  THIS_PATH=`dirname $0`
+  LOCK=/var/tmp/${THIS_SCRIPT}.lock
+  LOG=/var/tmp/${THIS_SCRIPT}.log
+  ERROR=/var/tmp/${THIS_SCRIPT}.error.$$
+
+  APP=${THIS_SCRIPT}
+  VERSION=
+}
+
+
+################### shared functions below
+
+myip () {
+  MYEXTERNALIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+  MYFULLIP=$(ip route get 8.8.8.8 | sed -n '/src/{s/.*src *\([^ ]*\).*/\1/p;q}')
+  MYNETWORK=$(echo ${MYFULLIP}| cut -f1-3 -d.)
+  MYIP=$(echo ${MYFULLIP}| cut -f4 -d.)
+  echo "MYEXTERNALIP ${MYEXTERNALIP}"
+  echo "MYFULLIP ${MYFULLIP}"
+  echo "MYIP ${MYIP}"
+  echo -e "MYNETWORK ${MYNETWORK}\n"
+  export MYFULLIP MYNETWORK MYIP MYEXTERNALIP
+}
+
+check_rsync () {
+  if [ -f /bin/rsync ]
+  then
+    RSYNC=/bin/rsync
+  fi
+
+  if [ -f /usr/bin/rsync ]
+  then
+    RSYNC=/usr/bin/rsync
+  else
+    echo "No rsync present"
+    exit 1
+  fi
+}
+
+check_keystore () {
+  if [ ! -d ${KEYSTORE} ]
+  then
+    mkdir -p ${KEYSTORE}
+  fi
+}
+
+check_gitkey () {
+  if [ ! -f ${GITKEY} ]
+  then
+    ssh-keygen -o -a 100 -t ed25519 -f ${GITKEY} -N "" -C git@${MYNAME}
+  fi
+}
+
+check_rsynckey () {
+  if [ ! -f ${RSYNCKEY} ]
+  then
+    ssh-keygen -o -a 100 -t ed25519 -f ${RSYNCKEY} -N "" -C rsync@${MYNAME}
+  fi
+}
+
+##
+##
+##
+##
+##
+##
+
+check_lock () {
+  echo -e "\n\n--------SCRIPT $0 starting"
+
+  FAILUREVALUE=600
+  DATENOW=$(date +'%s')
+  DATEFAILED=$((${DATENOW} - ${FAILUREVALUE}))
+
+  if [ -f $LOCK ]
+  then
+    .  $LOCK
+    # if script has no date for some reason then use DATEFAILED and reset eveyrthing
+    SCRIPTDATE="${SCRIPTDATE:-$DATEFAILED}"
+    EXPIRED=$(($DATENOW - $SCRIPTDATE))
+
+    echo " EXPIRED: $EXPIRED SCRIPTDATE:$SCRIPTDATE DATENOW: $DATENOW DATEFAILED:$DATEFAILED"
+    if [ $EXPIRED -gt ${FAILUREVALUE} ]
+    then
+    rm -f $LOCK ; rm -f $LOCK
+    echo "Cleared ${LOCK} for ${MYNAME} "
+    killall ${THIS_SCRIPT}; killall ${THIS_SCRIPT}; killall ${THIS_SCRIPT}; killall ${THIS_SCRIPT}; killall ${THIS_SCRIPT}; killall ${THIS_SCRIPT};
+    exit 1
+    else
+    echo "still ${THIS_SCRIPT} running on ${MYNAME} "
+    echo "The lock file is ${LOCK}"
+    exit 1
+    fi
+  else
+    echo "SCRIPTDATE=`date +'%s'`" > ${LOCK}
+  fi
+}
+
+rsync_pull_without_key () {
+  echo "PORT to be used ${PORT}"
+
+  case ${MYNAME} in
+    FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
+      ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
+      --exclude="@*" \
+      --exclude=".stversions" \
+      --exclude="*AppImage*" \
+      --exclude="*appimage*" \
+      --exclude="CCTV*" \
+      --exclude="*Citrix*" \
+      --exclude="*WinApps*" \
+      --exclude="*wordpress*" \
+      --exclude="*GOLDVirtuals*" \
+      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+    ;;
+    *)
+      ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
+      --exclude="@*" \
+      --exclude=".stversions" \
+      --exclude="CCTV*" \
+      --exclude="*Citrix*" \
+      --exclude="*WinApps*" \
+      --exclude="*wordpress*" \
+      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+    ;;
+  esac
+
+  if [ $? = 0 ]
+  then
+    echo "rsync was success"
+    chmod 4755 ${ZCBIN}/.specialOn
+    chmod 4755 ${ZCBIN}/.specialOff
+    rm -rf /root/.sshkeys
+    break 2
+  fi
+}
+
+rsync_pull_with_key () {
+  echo "RARGS to be used ${RARGS} and port ${PORT}"
+
+  case ${MYNAME} in
+    FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
+      ${RSYNC} -aq --progress -e "$RARGS" --port=${PORT} --delete-after --delete-excluded \
+      --exclude="@*" \
+      --exclude=".stversions" \
+      --exclude="*AppImage*" \
+      --exclude="*appimage*" \
+      --exclude="CCTV*" \
+      --exclude="*Citrix*" \
+      --exclude="*WinApps*" \
+      --exclude="*wordpress*" \
+      --exclude="*GOLDVirtuals*" \
+      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+    ;;
+    *)
+      ${RSYNC} ${RSYNC_OPTS} -e "$RARGS" --port=${PORT} \
+      --exclude="@*" \
+      --exclude=".stversions" \
+      --exclude="CCTV*" \
+      --exclude="*Citrix*" \
+      --exclude="*WinApps*" \
+      --exclude="*wordpress*" \
+      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+    ;;
+  esac
+
+  if [ $? = 0 ]
+  then
+    echo "rsync was success"
+    chmod 4755 ${ZCBIN}/.specialOn
+    chmod 4755 ${ZCBIN}/.specialOff
+    rm -rf /root/.sshkeys
+    break 1
+  fi
+}
+
+
+
+######
+# Main script below
+#####
+KEYSTORE=~/.mykeys
+GITKEY=${KEYSTORE}/gitkey
+RSYNCKEY=${KEYSTORE}/rsynckey
+BASTIONKEY=${KEYSTORE}/donkeykey
+STATIC=/static
+
+set_constants
+check_rsync
+check_keystore
+check_gitkey
+check_rsynckey
+check_lock
+
+#####
+# custom code
+#####
+ZGOLD=/zTools/zGold
+ZCONFIG=/zTools/zConfig
+ZANSIBLE=/zTools/zAnsible
+ZWINDOWSSHARE=/zTools/zWindowsShare
+ZUSERCONFIG=/zTools/zUserConfig
+ZPRIVATECONFIG=/zTools/zPrivateConfig
+  ZCLAST=${BASE}/zTools/zConfig/last
+
+case $1 in
+  gold)
+    RSYNCSOURCE="public"
+    RSYNCDEST=${ZGOLD}
+    if [ ! -d ${ZGOLD} ]
+    then 
+      mkdir -p ${ZGOLD}
+    fi
+  ;;
+  windows)
+    RSYNCSOURCE="mywindowsshare"
+    RSYNCDEST=${ZWINDOWSSHARE}
+    if [ ! -d ${ZWINDOWSSHARE} ]
+    then 
+      mkdir -p ${ZWINDOWSSHARE}
+    fi
+  ;;
+  ansible)
+    RSYNCSOURCE="myansible"
+    RSYNCDEST=${ZANSIBLE}
+    if [ ! -d ${ZANSIBLE} ]
+    then 
+      mkdir -p ${ZANSIBLE}
+    fi
+  ;;
+  userconfig)
+    RSYNCSOURCE="myuserconfig"
+    RSYNCDEST=${ZUSERCONFIG}
+    if [ ! -d ${ZUSERCONFIG} ]
+    then 
+      mkdir -p ${ZUSERCONFIG}
+    fi
+  ;;
+  privateconfig)
+    RSYNCSOURCE="myprivateconfig"
+    RSYNCDEST=${ZPRIVATECONFIG}
+    if [ ! -d ${ZPRIVATECONFIG} ]
+    then 
+      mkdir -p ${ZPRIVATECONFIG}
+    fi
+  ;;
+  *)
+    RSYNCSOURCE="myconfig"
+    RSYNCDEST=${ZCONFIG}
+    if [ ! -d ${ZCONFIG} ]
+    then 
+      mkdir -p ${ZCONFIG}
+    fi
+    ;;
+esac
+
+. /root/.cpullenv
+
+#DESTINATIONS="xxxxxxxxxxxxx yyyy"
+#RSYNC_PORT=
+#SSH_PORT=
+#SSH_USER
+
+cd ${RSYNCDEST}
+for i in $DESTINATIONS
+do
+  echo "\n\n------------------------ Trying $i"
+  SOURCE=$i
+  USER=${SSH_USER}
+
+  PORT=${RSYNC_PORT}
+  RSYNC_OPTS="-aqP --progress --delete-after --delete-excluded --contimeout=2"
+  echo "\n*********** Trying ${i} withOUT key on ${PORT} and ${USER} for ${RSYNCDEST} ******"
+  rsync_pull_without_key
+  
+  PORT=${SSH_PORT}
+  RARGS="ssh -i ${RSYNCKEY} -p${PORT}  -l ${USER} -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no"
+  RSYNC_OPTS="-aqP --progress --delete-after --delete-excluded"
+  echo "\n*********** Trying ${i} with key on ${PORT} and ${USER} for ${RSYNCDEST} ******"
+  rsync_pull_with_key
+done
+
+chmod -R 755 ${RSYNCDEST}
+chown -R root:root ${RSYNCDEST}
+
+if [ -f /etc/os-release ]
+then
+  . /etc/os-release
+fi
+
+case ${ID} in
+  alpine | debian | ubuntu)
+    echo "OS found is ${ID}"
+    su root -c "crontab -u root ${ZPCETC}/crontabs/DEBcrontab"
+    ;;
+  centos | fedora)
+    echo "OS found is ${ID}"
+    su root -c "crontab -u root ${ZPCETC}/crontabs/GOLDcrontab"
+    ;;
+   *)
+    echo "OS NOT RECOGNISED"
+    ;;
+esac
+
+
+
+
+#####
+rm ${LOCK}
+exit 0
