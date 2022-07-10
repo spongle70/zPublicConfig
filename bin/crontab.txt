@@ -1,0 +1,6 @@
+MAILTO=""
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/syno/sbin:/usr/syno/bin:/usr/local/sbin:/usr/local/bin
+#minute	hour	mday	month	wday	who	command
+0	0	*	*	4	root	/usr/syno/bin/synoschedtask --run id=1
+0	0	10	*	*	root	/usr/syno/bin/synoschedtask --run id=2
+*/2	*	*	*	*	root	touch /root/crap
