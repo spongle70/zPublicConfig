@@ -154,6 +154,7 @@ rsync_pull_without_key () {
   chmod 4755 ${ZCBIN}/.specialOn
   chmod 4755 ${ZCBIN}/.specialOff
   rm -rf /root/.sshkeys
+  fix_cron
   rm ${LOCK}
   break 2
  fi
@@ -194,11 +195,35 @@ rsync_pull_with_key () {
   chmod 4755 ${ZCBIN}/.specialOn
   chmod 4755 ${ZCBIN}/.specialOff
   rm -rf /root/.sshkeys
+  fix_cron
   rm ${LOCK}
-  exit 0
+  break 2
  fi
 }
 
+fix_cron () {
+chmod -R 755 ${RSYNCDEST}
+chown -R root:root ${RSYNCDEST}
+
+if [ -f /etc/os-release ]
+then
+ . /etc/os-release
+fi
+
+case ${ID} in
+ alpine | debian | ubuntu)
+  echo "OS found is ${ID}"
+  su root -c "crontab -u root ${ZPCETC}/crontabs/DEBcrontab"
+  ;;
+ centos | fedora)
+  echo "OS found is ${ID}"
+  su root -c "crontab -u root ${ZPCETC}/crontabs/GOLDcrontab"
+  ;;
+ *)
+  echo "OS NOT RECOGNISED"
+  ;;
+esac
+}
 
 
 ######
@@ -301,10 +326,10 @@ do
   SOURCE=$i
   USER=${SSH_USER}
 
-  PORT=${RSYNC_PORT}
-  RSYNC_OPTS="-aqP --progress --delete-after --delete-excluded --contimeout=2"
-  echo "\n*********** Trying ${i} withOUT key on ${PORT} and ${USER} for ${RSYNCDEST} ******"
-  rsync_pull_without_key
+  # PORT=${RSYNC_PORT}
+  # RSYNC_OPTS="-aqP --progress --delete-after --delete-excluded --contimeout=2"
+  # echo "\n*********** Trying ${i} withOUT key on ${PORT} and ${USER} for ${RSYNCDEST} ******"
+  # rsync_pull_without_key
   
   PORT=${SSH_PORT}
   RARGS="ssh -i ${RSYNCKEY} -p${PORT}  -l ${USER} -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no"
@@ -312,28 +337,6 @@ do
   echo "\n*********** Trying ${i} with key on ${PORT} and ${USER} for ${RSYNCDEST} ******"
   rsync_pull_with_key
 done
-
-chmod -R 755 ${RSYNCDEST}
-chown -R root:root ${RSYNCDEST}
-
-if [ -f /etc/os-release ]
-then
- . /etc/os-release
-fi
-
-case ${ID} in
- alpine | debian | ubuntu)
-  echo "OS found is ${ID}"
-  su root -c "crontab -u root ${ZPCETC}/crontabs/DEBcrontab"
-  ;;
- centos | fedora)
-  echo "OS found is ${ID}"
-  su root -c "crontab -u root ${ZPCETC}/crontabs/GOLDcrontab"
-  ;;
- *)
-  echo "OS NOT RECOGNISED"
-  ;;
-esac
 
 
 
