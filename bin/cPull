@@ -120,81 +120,81 @@ check_lock () {
 }
 
 rsync_pull_without_key () {
-  echo "PORT to be used ${PORT}"
-
-  case ${MYNAME} in
-    FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
-      ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
-      --exclude="@*" \
-      --exclude=".stversions" \
-      --exclude="*AppImage*" \
-      --exclude="*appimage*" \
-      --exclude="CCTV*" \
-      --exclude="*Citrix*" \
-      --exclude="*WinApps*" \
-      --exclude="*wordpress*" \
-      --exclude="*GOLDVirtuals*" \
-      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
-    ;;
-    *)
-      ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
-      --exclude="@*" \
-      --exclude=".stversions" \
-      --exclude="CCTV*" \
-      --exclude="*Citrix*" \
-      --exclude="*WinApps*" \
-      --exclude="*wordpress*" \
-      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
-    ;;
-  esac
-
-  if [ $? = 0 ]
-  then
-    echo "rsync was success"
-    chmod 4755 ${ZCBIN}/.specialOn
-    chmod 4755 ${ZCBIN}/.specialOff
-    rm -rf /root/.sshkeys
-    break 2
-  fi
+ echo "PORT to be used ${PORT}"
+  
+ case ${MYNAME} in
+  FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
+   ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
+   --exclude="@*" \
+   --exclude=".stversions" \
+   --exclude="*AppImage*" \
+   --exclude="*appimage*" \
+   --exclude="CCTV*" \
+   --exclude="*Citrix*" \
+   --exclude="*WinApps*" \
+   --exclude="*wordpress*" \
+   --exclude="*GOLDVirtuals*" \
+   $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+  ;;
+  *)
+   ${RSYNC} -aq --progress --port=${PORT} --contimeout=2 --delete-after --delete-excluded \
+   --exclude="@*" \
+   --exclude=".stversions" \
+   --exclude="CCTV*" \
+   --exclude="*Citrix*" \
+   --exclude="*WinApps*" \
+   --exclude="*wordpress*" \
+   $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+  ;;
+ esac
+ 
+ if [ $? = 0 ]
+ then
+  echo "rsync was success"
+  chmod 4755 ${ZCBIN}/.specialOn
+  chmod 4755 ${ZCBIN}/.specialOff
+  rm -rf /root/.sshkeys
+  break 2
+ fi
 }
 
 rsync_pull_with_key () {
-  echo "RARGS to be used ${RARGS} and port ${PORT}"
-
-  case ${MYNAME} in
-    FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
-      ${RSYNC} -aq --progress -e "$RARGS" --port=${PORT} --delete-after --delete-excluded \
-      --exclude="@*" \
-      --exclude=".stversions" \
-      --exclude="*AppImage*" \
-      --exclude="*appimage*" \
-      --exclude="CCTV*" \
-      --exclude="*Citrix*" \
-      --exclude="*WinApps*" \
-      --exclude="*wordpress*" \
-      --exclude="*GOLDVirtuals*" \
-      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
-    ;;
-    *)
-      ${RSYNC} ${RSYNC_OPTS} -e "$RARGS" --port=${PORT} \
-      --exclude="@*" \
-      --exclude=".stversions" \
-      --exclude="CCTV*" \
-      --exclude="*Citrix*" \
-      --exclude="*WinApps*" \
-      --exclude="*wordpress*" \
-      $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
-    ;;
-  esac
-
-  if [ $? = 0 ]
-  then
-    echo "rsync was success"
-    chmod 4755 ${ZCBIN}/.specialOn
-    chmod 4755 ${ZCBIN}/.specialOff
-    rm -rf /root/.sshkeys
+ echo "RARGS to be used ${RARGS} and port ${PORT}"
+  
+ case ${MYNAME} in
+  FIRE6666| KHS666| FIRE660 | FIRE661 | FIRE662 | FIRE663)
+   ${RSYNC} -aq --progress -e "$RARGS" --port=${PORT} --delete-after --delete-excluded \
+   --exclude="@*" \
+   --exclude=".stversions" \
+   --exclude="*AppImage*" \
+   --exclude="*appimage*" \
+   --exclude="CCTV*" \
+   --exclude="*Citrix*" \
+   --exclude="*WinApps*" \
+   --exclude="*wordpress*" \
+   --exclude="*GOLDVirtuals*" \
+   $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+  ;;
+  *)
+   ${RSYNC} ${RSYNC_OPTS} -e "$RARGS" --port=${PORT} \
+   --exclude="@*" \
+   --exclude=".stversions" \
+   --exclude="CCTV*" \
+   --exclude="*Citrix*" \
+   --exclude="*WinApps*" \
+   --exclude="*wordpress*" \
+   $SOURCE::${RSYNCSOURCE} ${RSYNCDEST}
+  ;;
+ esac
+ 
+ if [ $? = 0 ]
+ then
+  echo "rsync was success"
+  chmod 4755 ${ZCBIN}/.specialOn
+  chmod 4755 ${ZCBIN}/.specialOff
+  rm -rf /root/.sshkeys
   exit 0
-  fi
+ fi
 }
 
 
@@ -224,49 +224,49 @@ ZANSIBLE=/zTools/zAnsible
 ZWINDOWSSHARE=/zTools/zWindowsShare
 ZUSERCONFIG=/zTools/zUserConfig
 ZPRIVATECONFIG=/zTools/zPrivateConfig
-  ZCLAST=${BASE}/zTools/zConfig/last
+ZSHARED=/zTools/zShared
 
 case $1 in
-  gold)
-    RSYNCSOURCE="public"
-    RSYNCDEST=${ZGOLD}
-    if [ ! -d ${ZGOLD} ]
-    then 
-      mkdir -p ${ZGOLD}
-    fi
-  ;;
-  windows)
-    RSYNCSOURCE="mywindowsshare"
-    RSYNCDEST=${ZWINDOWSSHARE}
-    if [ ! -d ${ZWINDOWSSHARE} ]
-    then 
-      mkdir -p ${ZWINDOWSSHARE}
-    fi
-  ;;
-  ansible)
-    RSYNCSOURCE="myansible"
-    RSYNCDEST=${ZANSIBLE}
-    if [ ! -d ${ZANSIBLE} ]
-    then 
-      mkdir -p ${ZANSIBLE}
-    fi
-  ;;
-  userconfig)
-    RSYNCSOURCE="myuserconfig"
-    RSYNCDEST=${ZUSERCONFIG}
-    if [ ! -d ${ZUSERCONFIG} ]
-    then 
-      mkdir -p ${ZUSERCONFIG}
-    fi
-  ;;
-  privateconfig)
-    RSYNCSOURCE="myprivateconfig"
-    RSYNCDEST=${ZPRIVATECONFIG}
-    if [ ! -d ${ZPRIVATECONFIG} ]
-    then 
-      mkdir -p ${ZPRIVATECONFIG}
-    fi
-  ;;
+ gold)
+  RSYNCSOURCE="public"
+  RSYNCDEST=${ZGOLD}
+  if [ ! -d ${ZGOLD} ]
+  then 
+   mkdir -p ${ZGOLD}
+  fi
+ ;;
+ windows)
+  RSYNCSOURCE="mywindowsshare"
+  RSYNCDEST=${ZWINDOWSSHARE}
+  if [ ! -d ${ZWINDOWSSHARE} ]
+  then 
+   mkdir -p ${ZWINDOWSSHARE}
+  fi
+ ;;
+ ansible)
+  RSYNCSOURCE="myansible"
+  RSYNCDEST=${ZANSIBLE}
+  if [ ! -d ${ZANSIBLE} ]
+  then 
+   mkdir -p ${ZANSIBLE}
+  fi
+ ;;
+ userconfig)
+  RSYNCSOURCE="myuserconfig"
+  RSYNCDEST=${ZUSERCONFIG}
+  if [ ! -d ${ZUSERCONFIG} ]
+  then 
+   mkdir -p ${ZUSERCONFIG}
+  fi
+ ;;
+ privateconfig)
+  RSYNCSOURCE="myprivateconfig"
+  RSYNCDEST=${ZPRIVATECONFIG}
+  if [ ! -d ${ZPRIVATECONFIG} ]
+  then 
+   mkdir -p ${ZPRIVATECONFIG}
+  fi
+ ;;
  zshared)
   RSYNCSOURCE="myzshared"
   RSYNCDEST=${ZSHARED}
@@ -276,13 +276,13 @@ case $1 in
   fi
  ;;
  *)
-    RSYNCSOURCE="myconfig"
-    RSYNCDEST=${ZCONFIG}
-    if [ ! -d ${ZCONFIG} ]
-    then 
-      mkdir -p ${ZCONFIG}
-    fi
-    ;;
+  RSYNCSOURCE="myconfig"
+  RSYNCDEST=${ZCONFIG}
+  if [ ! -d ${ZCONFIG} ]
+  then 
+   mkdir -p ${ZCONFIG}
+  fi
+  ;;
 esac
 
 . /root/.cpullenv
@@ -316,21 +316,21 @@ chown -R root:root ${RSYNCDEST}
 
 if [ -f /etc/os-release ]
 then
-  . /etc/os-release
+ . /etc/os-release
 fi
 
 case ${ID} in
-  alpine | debian | ubuntu)
-    echo "OS found is ${ID}"
-    su root -c "crontab -u root ${ZPCETC}/crontabs/DEBcrontab"
-    ;;
-  centos | fedora)
-    echo "OS found is ${ID}"
-    su root -c "crontab -u root ${ZPCETC}/crontabs/GOLDcrontab"
-    ;;
-   *)
-    echo "OS NOT RECOGNISED"
-    ;;
+ alpine | debian | ubuntu)
+  echo "OS found is ${ID}"
+  su root -c "crontab -u root ${ZPCETC}/crontabs/DEBcrontab"
+  ;;
+ centos | fedora)
+  echo "OS found is ${ID}"
+  su root -c "crontab -u root ${ZPCETC}/crontabs/GOLDcrontab"
+  ;;
+ *)
+  echo "OS NOT RECOGNISED"
+  ;;
 esac
 
 
