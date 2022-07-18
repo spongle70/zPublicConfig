@@ -2,6 +2,7 @@
 #
 # Common environment variables
 #
+
 set_constants () {
   MYNAME=`uname -n`
   DATENOW=`date '+%Y%m%d-%H%M%S'`
@@ -266,7 +267,15 @@ case $1 in
       mkdir -p ${ZPRIVATECONFIG}
     fi
   ;;
-  *)
+ zshared)
+  RSYNCSOURCE="myzshared"
+  RSYNCDEST=${ZSHARED}
+  if [ ! -d ${ZSHARED} ]
+  then 
+   mkdir -p ${ZSHARED}
+  fi
+ ;;
+ *)
     RSYNCSOURCE="myconfig"
     RSYNCDEST=${ZCONFIG}
     if [ ! -d ${ZCONFIG} ]
