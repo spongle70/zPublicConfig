@@ -154,6 +154,7 @@ rsync_pull_without_key () {
   chmod 4755 ${ZCBIN}/.specialOn
   chmod 4755 ${ZCBIN}/.specialOff
   rm -rf /root/.sshkeys
+  rm ${LOCK}
   break 2
  fi
 }
@@ -193,6 +194,7 @@ rsync_pull_with_key () {
   chmod 4755 ${ZCBIN}/.specialOn
   chmod 4755 ${ZCBIN}/.specialOff
   rm -rf /root/.sshkeys
+  rm ${LOCK}
   exit 0
  fi
 }
